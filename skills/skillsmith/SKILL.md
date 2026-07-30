@@ -1,11 +1,6 @@
 ---
 name: skillsmith
 description: Create portable Agent Skills from screen recording videos. Use when the user asks to turn a local video file of a browser, desktop app, or UI workflow into a reusable skill.
-license: MIT
-compatibility: Requires local filesystem access to the source video and to a writable skills directory. Intended for agents that support Agent Skills or compatible skill folders.
-metadata:
-  project: SkillSmith
-  output: portable-agent-skill
 ---
 
 # SkillSmith
@@ -58,11 +53,21 @@ Examples:
 
 1. Confirm the source video exists and is readable.
 2. Determine the generated skill name and output parent directory.
-3. Create the generated skill folder at `<out>/<name>/`.
-4. Analyze the screen recording for the demonstrated UI workflow.
-5. Capture the operational steps an agent would need to repeat the workflow.
-6. Write a valid `SKILL.md` for the generated skill.
-7. Verify the generated skill folder follows the Agent Skills structure.
+3. Ensure the bundled helper dependencies are available. Install `scripts/requirements.txt` into an isolated environment when needed.
+4. Run the video helper:
+
+   ```text
+   python scripts/main.py "<video-path>"
+   ```
+
+5. Read the emitted `manifest.json`, then inspect the listed full-color PNGs in chronological order. Do not inspect unsampled video frames unless the keyframes are insufficient.
+6. Capture the operational steps an agent would need to repeat the workflow.
+7. Create the generated skill folder at `<out>/<name>/`.
+8. Write a valid `SKILL.md` for the generated skill.
+9. Verify the generated skill folder follows the Agent Skills structure.
+10. Delete the temporary run directory after writing the generated skill. Keep it only when the user requests debug artifacts or when more analysis is still required.
+
+The helper samples candidate frames, compares layout, changed area, and color state, removes adjacent near-duplicates, and always considers the first and final frames. It prints the path to the generated manifest. Use `--help` to view sampling and threshold controls.
 
 ## Generated Skill Structure
 
@@ -113,6 +118,6 @@ If the host agent supports both project-local and global skills:
 
 If the target skill folder already exists, do not overwrite it silently. Ask whether to replace it, update it, or choose another name.
 
-## Current Implementation
+## Video Processing Failures
 
-Use `scripts/main.py` as the executable helper when available. Until the helper is fully implemented, perform the workflow manually: inspect the video with available local tools, extract representative observations, and write the generated skill files directly.
+If the default keyframes omit an important transition, rerun the helper with a shorter `--interval` or lower relevant threshold. If a recording produces too many animation frames, increase the interval or relevant threshold. Preserve full-color output; grayscale derivatives are comparison-only.

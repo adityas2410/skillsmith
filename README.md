@@ -41,9 +41,22 @@ skills/
     +-- SKILL.md
     +-- scripts/
         +-- main.py
+        +-- requirements.txt
 ```
 
-The executable helper code is intentionally minimal while the project is being designed. The first priority is a clear, portable skill contract.
+The helper samples candidate frames from the recording, scores meaningful layout,
+pixel-area, and color-state changes, removes adjacent near-duplicates, and writes
+full-color PNG keyframes plus a JSON manifest in chronological order.
+
+Install the helper dependencies and process a recording:
+
+```powershell
+pip install -r skills\skillsmith\scripts\requirements.txt
+python skills\skillsmith\scripts\main.py C:\Recordings\invoice-flow.mp4
+```
+
+The command prints the absolute path to `manifest.json`. By default, artifacts
+are created under the system temporary directory in `skillsmith/<run-id>/`.
 
 ## Output Location
 
