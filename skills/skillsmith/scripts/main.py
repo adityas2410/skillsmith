@@ -69,6 +69,7 @@ class Thresholds:
 
 
 def read_metadata(capture: cv2.VideoCapture, source: Path) -> VideoMetadata:
+    """Read basic video properties and reject files with unusable metadata."""
     fps = float(capture.get(cv2.CAP_PROP_FPS))
     frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
     width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -91,6 +92,7 @@ def read_metadata(capture: cv2.VideoCapture, source: Path) -> VideoMetadata:
 def candidate_frame_indices(
     metadata: VideoMetadata, interval_seconds: float
 ) -> list[int]:
+    """Choose which video-frame numbers to inspect at the requested interval."""
     if interval_seconds <= 0:
         raise ValueError("Candidate interval must be greater than zero")
 
@@ -105,6 +107,7 @@ def candidate_frame_indices(
 def iter_candidate_frames(
     capture: cv2.VideoCapture, indices: Iterable[int]
 ) -> Iterable[tuple[int, np.ndarray]]:
+    """Decode the video in order and yield only frames selected as candidates."""
     targets = iter(indices)
     target = next(targets, None)
     frame_index = 0
@@ -127,6 +130,7 @@ def iter_candidate_frames(
 def make_comparison_frame(
     bgr: np.ndarray, comparison_width: int = 640
 ) -> ComparisonFrame:
+    """Build smaller grayscale and color copies used only for comparisons."""
     height, width = bgr.shape[:2]
     scale = min(1.0, comparison_width / width)
     resized = cv2.resize(
@@ -162,6 +166,7 @@ def compare_frames(
     current: ComparisonFrame,
     pixel_threshold: int,
 ) -> DiffScores:
+    """Measure layout, changed-pixel area, and color differences between frames."""
     similarity = structural_similarity(
         previous.gray, current.gray, data_range=255
     )
@@ -193,6 +198,7 @@ def selection_reasons(
     elapsed_seconds: float,
     thresholds: Thresholds,
 ) -> list[str]:
+    """Explain which configured rules make a candidate worth saving."""
     reasons: list[str] = []
     if scores.layout_difference >= thresholds.layout:
         reasons.append("layout-change")
@@ -206,6 +212,7 @@ def selection_reasons(
 
 
 def validate_thresholds(thresholds: Thresholds) -> None:
+    """Reject comparison thresholds outside their meaningful numeric ranges."""
     unit_interval_values = {
         "layout threshold": thresholds.layout,
         "changed-area threshold": thresholds.changed_area,
@@ -224,6 +231,7 @@ def validate_thresholds(thresholds: Thresholds) -> None:
 
 
 def encode_png(frame: np.ndarray) -> bytes:
+    """Compress a full-resolution color frame into PNG bytes for later saving."""
     ok, encoded = cv2.imencode(".png", frame)
     if not ok:
         raise ValueError("OpenCV could not encode a selected frame as PNG")
@@ -237,6 +245,7 @@ def select_keyframes(
     thresholds: Thresholds,
     comparison_width: int,
 ) -> list[SelectedFrame]:
+    """Keep candidates that differ meaningfully from the last selected frame."""
     selected: list[SelectedFrame] = []
     final_index = metadata.frame_count - 1
 
@@ -285,6 +294,7 @@ def is_near_duplicate(
     current: SelectedFrame,
     thresholds: Thresholds,
 ) -> bool:
+    """Return whether two selected frames are too visually similar to keep both."""
     scores = compare_frames(
         previous.comparison, current.comparison, thresholds.pixel
     )
@@ -298,6 +308,7 @@ def is_near_duplicate(
 def remove_adjacent_duplicates(
     selected: list[SelectedFrame], thresholds: Thresholds
 ) -> list[SelectedFrame]:
+    """Remove neighboring duplicates while preserving the video endpoints."""
     cleaned: list[SelectedFrame] = []
     for frame in selected:
         if not cleaned or not is_near_duplicate(cleaned[-1], frame, thresholds):
@@ -325,6 +336,7 @@ def remove_adjacent_duplicates(
 
 
 def format_timestamp(seconds: float) -> str:
+    """Format a video time as a filename-safe HH-MM-SS.mmm string."""
     milliseconds = int(round(seconds * 1000))
     hours, remainder = divmod(milliseconds, 3_600_000)
     minutes, remainder = divmod(remainder, 60_000)
@@ -333,6 +345,7 @@ def format_timestamp(seconds: float) -> str:
 
 
 def prepare_output_directory(output_dir: Path | None) -> tuple[Path, bool]:
+    """Create an empty run directory, using the system temp folder by default."""
     created_for_run = output_dir is None
     if output_dir is None:
         root = Path(tempfile.gettempdir()) / "skillsmith"
@@ -357,6 +370,7 @@ def write_artifacts(
     thresholds: Thresholds,
     frames: list[SelectedFrame],
 ) -> Path:
+    """Write final distinct PNGs and a manifest that lists them in time order."""
     frames_dir = output_dir / "frames"
     frames_dir.mkdir()
     manifest_frames: list[dict[str, object]] = []
@@ -410,6 +424,7 @@ def process_video(
     comparison_width: int = 640,
     thresholds: Thresholds | None = None,
 ) -> Path:
+    """Run video decoding, selection, deduplication, and artifact generation."""
     source = source.expanduser().resolve()
     if not source.is_file():
         raise FileNotFoundError(f"Video does not exist: {source}")
@@ -457,6 +472,7 @@ def process_video(
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Define the command-line arguments accepted by the processing script."""
     parser = argparse.ArgumentParser(
         description=(
             "Extract an ordered set of meaningful, full-color UI keyframes "
@@ -490,6 +506,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run the command-line program and print the generated manifest path."""
     args = build_parser().parse_args(argv)
     thresholds = Thresholds(
         layout=args.layout_threshold,
