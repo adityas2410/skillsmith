@@ -53,21 +53,24 @@ Examples:
 
 1. Confirm the source video exists and is readable.
 2. Determine the generated skill name and output parent directory.
-3. Ensure the bundled helper dependencies are available. Install `scripts/requirements.txt` into an isolated environment when needed.
-4. Run the video helper:
+3. Run the dependency bootstrapper:
 
    ```text
-   python scripts/main.py "<video-path>"
+   python scripts/run.py "<video-path>"
    ```
 
-5. Read the emitted `manifest.json`, then inspect the listed full-color PNGs in chronological order. Do not inspect unsampled video frames unless the keyframes are insufficient.
-6. Capture the operational steps an agent would need to repeat the workflow.
-7. Create the generated skill folder at `<out>/<name>/`.
-8. Write a valid `SKILL.md` for the generated skill.
-9. Verify the generated skill folder follows the Agent Skills structure.
-10. Delete the temporary run directory after writing the generated skill. Keep it only when the user requests debug artifacts or when more analysis is still required.
+   The bootstrapper creates or reuses `.venv/` inside the installed `skillsmith` folder, installs `scripts/requirements.txt` when needed, and then runs `scripts/main.py` with the same arguments.
+
+4. Read the emitted `manifest.json`, then inspect the listed full-color PNGs in chronological order. Do not inspect unsampled video frames unless the keyframes are insufficient.
+5. Capture the operational steps an agent would need to repeat the workflow.
+6. Create the generated skill folder at `<out>/<name>/`.
+7. Write a valid `SKILL.md` for the generated skill.
+8. Verify the generated skill folder follows the Agent Skills structure.
+9. Delete the temporary run directory after writing the generated skill. Keep it only when the user requests debug artifacts or when more analysis is still required.
 
 The helper samples candidate frames, compares layout, changed area, and color state, removes adjacent near-duplicates, and always considers the first and final frames. It prints the path to the generated manifest. Use `--help` to view sampling and threshold controls.
+
+Do not ask the user to create the Python environment manually. If Python itself is unavailable, report that Python is required to run SkillSmith.
 
 ## Generated Skill Structure
 

@@ -40,6 +40,7 @@ skills/
 +-- skillsmith/
     +-- SKILL.md
     +-- scripts/
+        +-- run.py
         +-- main.py
         +-- requirements.txt
 ```
@@ -48,15 +49,16 @@ The helper samples candidate frames from the recording, scores meaningful layout
 pixel-area, and color-state changes, removes adjacent near-duplicates, and writes
 full-color PNG keyframes plus a JSON manifest in chronological order.
 
-Install the helper dependencies and process a recording:
+Process a recording through the bootstrapper:
 
 ```powershell
-pip install -r skills\skillsmith\scripts\requirements.txt
-python skills\skillsmith\scripts\main.py C:\Recordings\invoice-flow.mp4
+python skills\skillsmith\scripts\run.py C:\Recordings\invoice-flow.mp4
 ```
 
-The command prints the absolute path to `manifest.json`. By default, artifacts
-are created under the system temporary directory in `skillsmith/<run-id>/`.
+The bootstrapper creates or reuses a `.venv` inside the installed `skillsmith`
+folder, installs `scripts/requirements.txt` when needed, and runs the video
+helper. The command prints the absolute path to `manifest.json`. By default,
+artifacts are created under the system temporary directory in `skillsmith/<run-id>/`.
 
 ## Output Location
 
