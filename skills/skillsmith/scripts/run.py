@@ -1,4 +1,4 @@
-"""Bootstrap SkillSmith's runtime environment, then run the video helper."""
+"""Bootstrap Skillsmith's runtime environment, then run the video helper."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ def requirements_hash(requirements_path: Path) -> str:
 
 
 def ensure_venv(root: Path) -> Path:
-    """Create or update SkillSmith's local virtual environment."""
+    """Create or update Skillsmith's local virtual environment."""
     venv_dir = root / ".venv"
     python = venv_python(venv_dir)
     requirements = root / "scripts" / "requirements.txt"
@@ -72,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         python = ensure_venv(root)
     except (OSError, subprocess.CalledProcessError) as error:
-        print(f"error: Could not prepare SkillSmith environment: {error}", file=sys.stderr)
+        print(f"error: Could not prepare Skillsmith environment: {error}", file=sys.stderr)
         return 2
 
     return subprocess.call([str(python), str(processor), *args])

@@ -3,9 +3,9 @@ name: skillsmith
 description: Create portable Agent Skills from screen recording videos. Use when the user asks to turn a local video file of a browser, desktop app, or UI workflow into a reusable skill.
 ---
 
-# SkillSmith
+# Skillsmith
 
-Use SkillSmith to convert a user's screen recording into a new reusable Agent Skill.
+Use Skillsmith to convert a user's screen recording into a new reusable Agent Skill.
 
 The user may only provide a video path, for example:
 
@@ -70,7 +70,7 @@ Examples:
 
 The helper samples candidate frames, compares layout, changed area, and color state, removes adjacent near-duplicates, and always considers the first and final frames. It prints the path to the generated manifest. Use `--help` to view sampling and threshold controls.
 
-Do not ask the user to create the Python environment manually. If Python itself is unavailable, report that Python is required to run SkillSmith.
+Do not ask the user to create the Python environment manually. If Python itself is unavailable, report that Python is required to run Skillsmith.
 
 ## Generated Skill Structure
 

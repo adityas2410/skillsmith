@@ -1,21 +1,21 @@
-# SkillSmith
+# Skillsmith
 
-SkillSmith is an Agent Skill that helps agents create new reusable skills from screen recordings.
+Skillsmith is an Agent Skill that helps agents create new reusable skills from screen recordings.
 
-The user provides a local video file showing a browser, desktop app, or UI workflow. The agent invokes SkillSmith, analyzes the recording, and writes a new portable skill folder that future agents can use to repeat or understand that workflow.
+The user provides a local video file showing a browser, desktop app, or UI workflow. The agent invokes Skillsmith, analyzes the recording, and writes a new portable skill folder that future agents can use to repeat or understand that workflow.
 
 ## What It Creates
 
-SkillSmith generates a new skill folder with a `SKILL.md` file:
+Skillsmith generates a new skill folder with a `SKILL.md` file:
 
 ```text
 skill-name/
 +-- SKILL.md
 ```
 
-Optional folders such as `scripts/`, `references/`, and `assets/` are not created by default. SkillSmith should add them only when the generated workflow explicitly needs executable helpers, supporting documentation, or bundled resources.
+Optional folders such as `scripts/`, `references/`, and `assets/` are not created by default. Skillsmith should add them only when the generated workflow explicitly needs executable helpers, supporting documentation, or bundled resources.
 
-## Installing SkillSmith
+## Installing Skillsmith
 
 Coding agents that support Agent Skills commonly provide a Skill Installer or
 Skill Creator capability. Ask the agent to use either capability to add the
@@ -23,14 +23,14 @@ existing `skills/skillsmith/` folder from this repository to its known skills
 directory. For example:
 
 ```text
-Use your skill installer to install SkillSmith from
+Use your skill installer to install Skillsmith from
 https://github.com/adityas2410/skillsmith/tree/main/skills/skillsmith
 ```
 
 or:
 
 ```text
-Use your skill creator to add the existing SkillSmith skill from
+Use your skill creator to add the existing Skillsmith skill from
 https://github.com/adityas2410/skillsmith/tree/main/skills/skillsmith
 to your skills directory without changing its files.
 ```
@@ -41,7 +41,7 @@ specific location.
 
 ## How It Is Used
 
-SkillSmith itself is installed as a skill in an agent's skills directory. A user can then ask naturally:
+Skillsmith itself is installed as a skill in an agent's skills directory. A user can then ask naturally:
 
 ```text
 make C:\Recordings\invoice-flow.mp4 into a skill
@@ -55,9 +55,9 @@ The agent should infer:
 
 If the agent cannot determine a safe output location, it should ask the user for the parent directory where the new skill folder should be created.
 
-## SkillSmith Layout
+## Skillsmith Layout
 
-This repository currently contains the SkillSmith skill:
+This repository currently contains the Skillsmith skill:
 
 ```text
 skills/
@@ -90,7 +90,7 @@ Record one focused UI feature or workflow per video. Short demonstrations make
 it easier for the agent to identify the navigation steps and produce a precise
 skill.
 
-SkillSmith does not impose a recording-duration limit. The recommendation to
+Skillsmith does not impose a recording-duration limit. The recommendation to
 use shorter demonstrations is about keeping each generated skill focused, not
 about a processing limitation. Split a multi-feature application walkthrough
 into separate recordings such as login, create invoice, update customer, and
@@ -147,4 +147,4 @@ or:
 ./.agent-skills/invoice-flow/
 ```
 
-SkillSmith does not assume one universal skills directory because each host agent may store skills differently.
+Skillsmith does not assume one universal skills directory because each host agent may store skills differently.
