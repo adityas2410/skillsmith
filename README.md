@@ -15,6 +15,30 @@ skill-name/
 
 Optional folders such as `scripts/`, `references/`, and `assets/` are not created by default. SkillSmith should add them only when the generated workflow explicitly needs executable helpers, supporting documentation, or bundled resources.
 
+## Installing SkillSmith
+
+Coding agents that support Agent Skills commonly provide a Skill Installer or
+Skill Creator capability. Ask the agent to use either capability to add the
+existing `skills/skillsmith/` folder from this repository to its known skills
+directory. For example:
+
+```text
+Use your skill installer to install SkillSmith from
+https://github.com/adityas2410/skillsmith/tree/main/skills/skillsmith
+```
+
+or:
+
+```text
+Use your skill creator to add the existing SkillSmith skill from
+https://github.com/adityas2410/skillsmith/tree/main/skills/skillsmith
+to your skills directory without changing its files.
+```
+
+The exact destination differs between coding agents, so let the agent choose
+its supported project-local or global skills directory unless you require a
+specific location.
+
 ## How It Is Used
 
 SkillSmith itself is installed as a skill in an agent's skills directory. A user can then ask naturally:
@@ -66,16 +90,13 @@ Record one focused UI feature or workflow per video. Short demonstrations make
 it easier for the agent to identify the navigation steps and produce a precise
 skill.
 
-A 30-minute or one-hour recording can be processed, but it is not recommended
-as one SkillSmith input. Processing time grows with the video length, long
-recordings can produce many keyframes, and unrelated workflows make the final
-skill harder for the agent to infer. Split a long application walkthrough into
-separate recordings such as login, create invoice, update customer, and export
-report.
-
-There is no fixed short-video duration limit. Include enough time to show the
-complete feature, while avoiding unrelated navigation, long idle periods, and
-repeated demonstrations of the same state.
+SkillSmith does not impose a recording-duration limit. The recommendation to
+use shorter demonstrations is about keeping each generated skill focused, not
+about a processing limitation. Split a multi-feature application walkthrough
+into separate recordings such as login, create invoice, update customer, and
+export report. Include enough time to show each feature completely while
+avoiding unrelated navigation, long idle periods, and repeated demonstrations
+of the same state.
 
 ## Temporary Keyframes and Manifest
 
