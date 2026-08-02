@@ -127,6 +127,19 @@ agent must delete the complete temporary `<run-id>` directory. Temporary files
 should be retained only when the user requests debugging artifacts or more
 analysis is still required.
 
+## When to Use Skillsmith
+
+Use Skillsmith when a workflow is best communicated through a human
+demonstration, especially for desktop applications, private or authenticated
+systems, environments unavailable to the agent, and procedures that are
+difficult to describe precisely.
+
+For an accessible website, a browser automation tool such as Playwright can
+provide more accurate information about controls, labels, URLs, and page
+structure. The two approaches can also be combined: use the recording to
+understand the intended workflow, then use browser automation to verify the
+current interface and behavior.
+
 ## Output Location
 
 Generated skills are written to:
