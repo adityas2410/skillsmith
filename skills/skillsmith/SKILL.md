@@ -61,14 +61,14 @@ Examples:
 
    The bootstrapper creates or reuses `.venv/` inside the installed `skillsmith` folder, installs `scripts/requirements.txt` when needed, and then runs `scripts/main.py` with the same arguments.
 
-4. Read the emitted `manifest.json`, then inspect the listed full-color PNGs in chronological order. Do not inspect unsampled video frames unless the keyframes are insufficient.
+4. Read the emitted `manifest.json`, then inspect contact sheets in ascending `index` order. Within each sheet, read frames from left to right and then top to bottom. Verify the visible frame numbers and timestamps against the manifest. Open a listed full-resolution frame only when text, controls, or a workflow transition are unclear; do not inspect every original frame by default. Do not inspect unsampled video frames unless the keyframes are insufficient.
 5. Capture the operational steps an agent would need to repeat the workflow.
 6. Create the generated skill folder at `<out>/<name>/`.
 7. Write a valid `SKILL.md` for the generated skill.
 8. Verify the generated skill folder follows the Agent Skills structure.
 9. Delete the temporary run directory after writing the generated skill. Keep it only when the user requests debug artifacts or when more analysis is still required.
 
-The helper samples candidate frames, compares layout, changed area, and color state, removes adjacent near-duplicates, and always considers the first and final frames. It prints the path to the generated manifest. Use `--help` to view sampling and threshold controls.
+The helper samples candidate frames, compares layout, changed area, and color state, removes adjacent near-duplicates, and always considers the first and final frames. It preserves the selected full-resolution frames and groups them into ordered contact sheets of up to four frames for lower-cost inspection. It prints the path to the generated manifest. Use `--help` to view sampling and threshold controls.
 
 Do not ask the user to create the Python environment manually. If Python itself is unavailable, report that Python is required to run Skillsmith.
 

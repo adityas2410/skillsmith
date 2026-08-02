@@ -71,7 +71,7 @@ skills/
 
 The helper samples candidate frames from the recording, scores meaningful layout,
 pixel-area, and color-state changes, removes adjacent near-duplicates, and writes
-full-color PNG keyframes plus a JSON manifest in chronological order.
+full-color PNG keyframes, ordered contact sheets, and a JSON manifest.
 
 Process a recording through the bootstrapper:
 
@@ -105,27 +105,35 @@ The video helper creates a unique temporary run directory:
 ```text
 <system-temp>/skillsmith/<run-id>/
 +-- manifest.json
++-- contact-sheets/
+|   +-- 000001.png
+|   +-- 000002.png
 +-- frames/
     +-- 000001_00-00-00.000.png
     +-- 000002_00-00-03.500.png
     +-- 000003_00-00-08.000.png
 ```
 
-The PNG files are the final selected full-color keyframes after visual-change
-selection and adjacent-duplicate removal. Intermediate candidates and discarded
-frames are not saved.
+The files under `frames/` are the final selected full-color keyframes after
+visual-change selection and adjacent-duplicate removal. Intermediate candidates
+and discarded frames are not saved. The files under `contact-sheets/` group up
+to four selected frames in a 2-by-2 grid. Each tile shows its frame number and
+timestamp, ordered from left to right and then top to bottom.
 
 `manifest.json` records the source video metadata and lists every selected
 keyframe in chronological order with its timestamp, absolute path, selection
-reason, and visual-difference scores. The helper prints the absolute manifest
+reason, and visual-difference scores. It also lists contact sheets in order and
+maps each sheet to its original frames. The helper prints the absolute manifest
 path so the host AI agent knows where to begin.
 
-The host agent reads the manifest, inspects only the listed keyframes, infers the
-demonstrated UI navigation, and writes the generated skill to its own known
-skills directory. After the new `SKILL.md` has been generated and validated, the
-agent must delete the complete temporary `<run-id>` directory. Temporary files
-should be retained only when the user requests debugging artifacts or more
-analysis is still required.
+The host agent reads the manifest and inspects contact sheets in ascending order,
+reading each sheet from left to right and then top to bottom. It opens an
+original full-resolution frame only when a tile does not show enough detail.
+This reduces image-processing cost without discarding workflow information. The
+agent then writes the generated skill to its own known skills directory. After
+the new `SKILL.md` has been generated and validated, the agent must delete the
+complete temporary `<run-id>` directory. Temporary files should be retained only
+when the user requests debugging artifacts or more analysis is still required.
 
 ## When to Use Skillsmith
 

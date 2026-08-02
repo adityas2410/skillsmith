@@ -20,6 +20,14 @@ import numpy as np
 from skimage.metrics import structural_similarity
 
 
+CONTACT_SHEET_COLUMNS = 2
+CONTACT_SHEET_MAX_FRAMES = 4
+CONTACT_TILE_WIDTH = 960
+CONTACT_IMAGE_HEIGHT = 540
+CONTACT_LABEL_HEIGHT = 56
+CONTACT_TILE_HEIGHT = CONTACT_LABEL_HEIGHT + CONTACT_IMAGE_HEIGHT
+
+
 @dataclass(frozen=True)
 class VideoMetadata:
     fps: float
@@ -344,6 +352,98 @@ def format_timestamp(seconds: float) -> str:
     return f"{hours:02d}-{minutes:02d}-{whole_seconds:02d}.{millis:03d}"
 
 
+def format_display_timestamp(seconds: float) -> str:
+    """Format a video time for a human-readable contact-sheet label."""
+    return format_timestamp(seconds).replace("-", ":", 2)
+
+
+def contact_sheet_label(frame_index: int, timestamp_seconds: float) -> str:
+    """Return the visible label printed above a contact-sheet frame."""
+    return (
+        f"Frame {frame_index:06d} | "
+        f"{format_display_timestamp(timestamp_seconds)}"
+    )
+
+
+def decode_selected_frame(frame: SelectedFrame) -> np.ndarray:
+    """Decode a selected frame's saved PNG bytes for contact-sheet rendering."""
+    decoded = cv2.imdecode(
+        np.frombuffer(frame.png_bytes, dtype=np.uint8), cv2.IMREAD_COLOR
+    )
+    if decoded is None:
+        raise ValueError("OpenCV could not decode a selected frame PNG")
+    return decoded
+
+
+def render_contact_sheet(
+    indexed_frames: list[tuple[int, SelectedFrame]],
+) -> np.ndarray:
+    """Render up to four ordered frames in a labeled two-column grid."""
+    if not 1 <= len(indexed_frames) <= CONTACT_SHEET_MAX_FRAMES:
+        raise ValueError("A contact sheet requires between one and four frames")
+
+    columns = min(CONTACT_SHEET_COLUMNS, len(indexed_frames))
+    rows = math.ceil(len(indexed_frames) / CONTACT_SHEET_COLUMNS)
+    sheet = np.full(
+        (rows * CONTACT_TILE_HEIGHT, columns * CONTACT_TILE_WIDTH, 3),
+        24,
+        dtype=np.uint8,
+    )
+
+    for tile_index, (frame_index, frame) in enumerate(indexed_frames):
+        row, column = divmod(tile_index, CONTACT_SHEET_COLUMNS)
+        tile_left = column * CONTACT_TILE_WIDTH
+        tile_top = row * CONTACT_TILE_HEIGHT
+        image_top = tile_top + CONTACT_LABEL_HEIGHT
+
+        decoded = decode_selected_frame(frame)
+        height, width = decoded.shape[:2]
+        scale = min(CONTACT_TILE_WIDTH / width, CONTACT_IMAGE_HEIGHT / height)
+        resized_width = max(1, round(width * scale))
+        resized_height = max(1, round(height * scale))
+        interpolation = cv2.INTER_AREA if scale < 1 else cv2.INTER_CUBIC
+        resized = cv2.resize(
+            decoded,
+            (resized_width, resized_height),
+            interpolation=interpolation,
+        )
+
+        frame_left = tile_left + (CONTACT_TILE_WIDTH - resized_width) // 2
+        frame_top = image_top + (CONTACT_IMAGE_HEIGHT - resized_height) // 2
+        sheet[
+            frame_top : frame_top + resized_height,
+            frame_left : frame_left + resized_width,
+        ] = resized
+
+        label = contact_sheet_label(frame_index, frame.timestamp_seconds)
+        text_size, _ = cv2.getTextSize(
+            label, cv2.FONT_HERSHEY_SIMPLEX, 1.0, 2
+        )
+        text_y = tile_top + (CONTACT_LABEL_HEIGHT + text_size[1]) // 2
+        cv2.putText(
+            sheet,
+            label,
+            (tile_left + 18, text_y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1.0,
+            (255, 255, 255),
+            2,
+            cv2.LINE_AA,
+        )
+        cv2.rectangle(
+            sheet,
+            (tile_left, tile_top),
+            (
+                tile_left + CONTACT_TILE_WIDTH - 1,
+                tile_top + CONTACT_TILE_HEIGHT - 1,
+            ),
+            (80, 80, 80),
+            1,
+        )
+
+    return sheet
+
+
 def prepare_output_directory(output_dir: Path | None) -> tuple[Path, bool]:
     """Create an empty run directory, using the system temp folder by default."""
     created_for_run = output_dir is None
@@ -373,6 +473,8 @@ def write_artifacts(
     """Write final distinct PNGs and a manifest that lists them in time order."""
     frames_dir = output_dir / "frames"
     frames_dir.mkdir()
+    contact_sheets_dir = output_dir / "contact-sheets"
+    contact_sheets_dir.mkdir()
     manifest_frames: list[dict[str, object]] = []
 
     for output_index, frame in enumerate(frames, start=1):
@@ -392,8 +494,28 @@ def write_artifacts(
             }
         )
 
+    manifest_contact_sheets: list[dict[str, object]] = []
+    for offset in range(0, len(frames), CONTACT_SHEET_MAX_FRAMES):
+        sheet_index = len(manifest_contact_sheets) + 1
+        indexed_frames = [
+            (frame_index, frames[frame_index - 1])
+            for frame_index in range(
+                offset + 1,
+                min(offset + CONTACT_SHEET_MAX_FRAMES, len(frames)) + 1,
+            )
+        ]
+        sheet_path = contact_sheets_dir / f"{sheet_index:06d}.png"
+        sheet_path.write_bytes(encode_png(render_contact_sheet(indexed_frames)))
+        manifest_contact_sheets.append(
+            {
+                "index": sheet_index,
+                "path": str(sheet_path),
+                "frame_indices": [index for index, _ in indexed_frames],
+            }
+        )
+
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "source_video_path": str(source),
         "duration_seconds": round(metadata.duration_seconds, 6),
@@ -404,6 +526,16 @@ def write_artifacts(
         "candidate_interval_seconds": interval_seconds,
         "candidate_frame_count": candidate_count,
         "selected_frame_count": len(frames),
+        "contact_sheet_count": len(manifest_contact_sheets),
+        "contact_sheet_layout": {
+            "columns": CONTACT_SHEET_COLUMNS,
+            "max_frames_per_sheet": CONTACT_SHEET_MAX_FRAMES,
+            "tile_width": CONTACT_TILE_WIDTH,
+            "image_height": CONTACT_IMAGE_HEIGHT,
+            "label_height": CONTACT_LABEL_HEIGHT,
+            "reading_order": "left-to-right, then top-to-bottom",
+        },
+        "contact_sheets": manifest_contact_sheets,
         "comparison": {
             "color_saved": True,
             "thresholds": asdict(thresholds),
@@ -465,6 +597,7 @@ def process_video(
             shutil.rmtree(output_dir, ignore_errors=True)
         else:
             shutil.rmtree(output_dir / "frames", ignore_errors=True)
+            shutil.rmtree(output_dir / "contact-sheets", ignore_errors=True)
             (output_dir / "manifest.json").unlink(missing_ok=True)
         raise
     finally:
