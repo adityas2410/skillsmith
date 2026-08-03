@@ -39,6 +39,23 @@ The exact destination differs between coding agents, so let the agent choose
 its supported project-local or global skills directory unless you require a
 specific location.
 
+### Updates
+
+The `main` branch is the latest stable version of Skillsmith. During normal use,
+Skillsmith checks the version on GitHub at most once every 24 hours. A failed
+check never interrupts video processing. When an update exists, it prints the
+installed and available versions and the update command.
+
+Update the installed skill with:
+
+```powershell
+python skills\skillsmith\scripts\run.py --update
+```
+
+The command downloads the latest `main` branch, replaces the installed
+Skillsmith files, and preserves `.venv`. To publish an update, increment
+`skills/skillsmith/VERSION` and push the stable changes to `main`.
+
 ## How It Is Used
 
 Skillsmith itself is installed as a skill in an agent's skills directory. A user can then ask naturally:
@@ -63,6 +80,7 @@ This repository currently contains the Skillsmith skill:
 skills/
 +-- skillsmith/
     +-- SKILL.md
+    +-- VERSION
     +-- scripts/
         +-- run.py
         +-- main.py

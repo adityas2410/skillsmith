@@ -72,6 +72,19 @@ The helper samples candidate frames, compares layout, changed area, and color st
 
 Do not ask the user to create the Python environment manually. If Python itself is unavailable, report that Python is required to run Skillsmith.
 
+## Updates
+
+Allow the bootstrapper's best-effort version check to run during normal use. It
+checks at most once every 24 hours and must never interrupt video processing.
+If it reports a newer version, tell the user and offer to run:
+
+```text
+python scripts/run.py --update
+```
+
+The update command downloads the latest stable `main` branch and preserves the
+installed `.venv`.
+
 ## Generated Skill Structure
 
 Create generated skills using this default portable layout:
